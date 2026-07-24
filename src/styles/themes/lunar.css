@@ -1,0 +1,51 @@
+/* Lunar -- the default theme, drawn from the app icon.
+   Deep violet-navy from the icon's outline, lavender text from the moon's lit
+   face, and the icon's purple-to-indigo gradient split across two roles: violet
+   for the accent, indigo for the play action. No yellow anywhere -- the status
+   colours stay inside the violet/rose family so nothing reads as unthemed. */
+
+[data-theme="lunar"] {
+  --color-bg-base: #15102a;
+  --color-bg-raised: #1c1637;
+  --color-bg-sunken: #0f0b1f;
+  --color-bg-overlay: #120d24;
+
+  --color-surface: #271f47;
+  --color-surface-hover: #322858;
+  --color-surface-active: #3d3169;
+  --color-surface-selected: #342a5e;
+
+  /* The moon's lit face and its craters, reused as text tones. */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #cfc9e0;
+  --color-text-muted: #9089ad;
+  --color-text-inverse: #15102a;
+
+  /* Top of the icon's gradient. */
+  --color-accent: #a06ef5;
+  --color-accent-hover: #b98cf8;
+  --color-accent-muted: #35275e;
+  --color-accent-text: #140f26;
+  --color-accent-glow: rgb(160 110 245 / 0.34);
+
+  /* Bottom of the icon's gradient -- kept distinct from the accent so the
+     primary action never blends into ordinary links and selections. */
+  --color-play: #5b6ef5;
+  --color-play-hover: #7385f7;
+  --color-play-text: #ffffff;
+
+  --color-border: #241c42;
+  --color-border-subtle: #1d1636;
+  --color-border-strong: #3a2f5e;
+  --color-focus-ring: #a06ef5;
+
+  --color-success: #5fd39b;
+  --color-warning: #d98ac9;
+  --color-danger: #f0647e;
+  --color-info: #a06ef5;
+
+  --color-scrollbar-thumb: #352b56;
+  --color-scrollbar-thumb-hover: #453a6d;
+
+  --gradient-hero-fallback: linear-gradient(135deg, #3d2b78 0%, #15102a 100%);
+}

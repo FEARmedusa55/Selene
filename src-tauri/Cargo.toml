@@ -1,0 +1,72 @@
+[package]
+name = "selene"
+version = "0.1.0"
+description = "Unified game library launcher for emulated and PC games"
+authors = ["FEARmedusa55"]
+edition = "2021"
+license = "GPL-3.0-only"
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "selene_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset", "tray-icon", "image-png"] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Local-first storage. `bundled` compiles SQLite from source so there is no
+# system dependency on either Windows or Linux.
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# Scanning: walkdir for traversal, rayon to parallelise hashing/probing across
+# multi-GB ROM directories.
+walkdir = "2"
+rayon = "1"
+
+# Filename/title-ID parsing.
+regex = "1"
+once_cell = "1"
+
+# IGDB / Twitch OAuth. rustls rather than native-tls so Linux builds do not
+# need OpenSSL development headers present.
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }
+tokio = { version = "1", features = ["time", "sync"] }
+
+# Errors and logging.
+thiserror = "2"
+anyhow = "1"
+log = "0.4"
+
+# Config directory resolution (%APPDATA% on Windows, XDG on Linux).
+directories = "5"
+
+# Emulator config formats: Cemu writes XML, Dolphin and Eden write INI.
+quick-xml = { version = "0.36", features = ["serialize"] }
+rust-ini = "0.21"
+
+[dev-dependencies]
+# Async runtime for the live IGDB integration test.
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[target.'cfg(windows)'.dependencies]
+# Job Objects let us track a launched game's entire process tree to zero, which
+# is what makes playtime correct for titles that fork and exit their launcher.
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_System_JobObjects",
+    "Win32_System_Threading",
+    "Win32_System_IO",
+    # CreateJobObjectW takes SECURITY_ATTRIBUTES and is gated behind this.
+    "Win32_Security",
+] }

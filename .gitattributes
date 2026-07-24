@@ -1,0 +1,10 @@
+# Normalise line endings: the repo stores LF; Windows checkouts may use CRLF
+# locally, but nothing gets committed with CRLF. Keeps diffs clean across OSes.
+* text=auto eol=lf
+
+# Binary assets — never touch these.
+*.png binary
+*.ico binary
+*.icns binary
+*.wua binary
+*.db binary

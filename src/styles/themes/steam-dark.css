@@ -1,0 +1,44 @@
+/* Steam-like dark -- the default theme.
+   Deep blue-charcoal, cyan accent, olive-green play action. */
+
+[data-theme="steam-dark"] {
+  --color-bg-base: #1a2432;
+  --color-bg-raised: #1e2a3a;
+  --color-bg-sunken: #131b25;
+  --color-bg-overlay: #171d26;
+
+  --color-surface: #26364a;
+  --color-surface-hover: #2f4258;
+  --color-surface-active: #375070;
+  --color-surface-selected: #24405c;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b9c7d4;
+  --color-text-muted: #7b8896;
+  --color-text-inverse: #1a2432;
+
+  --color-accent: #66c0f4;
+  --color-accent-hover: #8fd0f7;
+  --color-accent-muted: #24455f;
+  --color-accent-text: #0e1c26;
+  --color-accent-glow: rgb(102 192 244 / 0.32);
+
+  --color-play: #5c7e10;
+  --color-play-hover: #6f9613;
+  --color-play-text: #ffffff;
+
+  --color-border: #232f3d;
+  --color-border-subtle: #1e2833;
+  --color-border-strong: #384759;
+  --color-focus-ring: #66c0f4;
+
+  --color-success: #5ba32b;
+  --color-warning: #d9a441;
+  --color-danger: #c0392b;
+  --color-info: #66c0f4;
+
+  --color-scrollbar-thumb: #364354;
+  --color-scrollbar-thumb-hover: #46566b;
+
+  --gradient-hero-fallback: linear-gradient(135deg, #2a475e 0%, #1a2432 100%);
+}

@@ -1,0 +1,7 @@
+# D: is exFAT and cannot create symlinks, which pnpm's default isolated linker
+# requires. Hoisted linking keeps installs working on this drive.
+nodeLinker: hoisted
+
+# esbuild's postinstall places its native binary; Vite will not build without it.
+allowBuilds:
+  esbuild: true

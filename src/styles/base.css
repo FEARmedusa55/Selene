@@ -1,0 +1,122 @@
+/* Reset + global element styling. Every value here resolves to a token. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-base);
+  -webkit-font-smoothing: antialiased;
+
+  /* This is a desktop app shell, not a document: never rubber-band or
+     text-select chrome, and never show a native caret on the app frame. */
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+}
+
+/* Opt back in where text is genuinely content the user may want to copy. */
+input,
+textarea,
+[data-selectable] {
+  user-select: text;
+}
+
+h1, h2, h3, h4 {
+  color: var(--color-text-primary);
+  line-height: var(--leading-tight);
+  font-weight: var(--weight-bold);
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* Visible, token-driven focus ring for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Gamepad navigation moves focus programmatically, which does not always
+   trigger :focus-visible, so while a controller is in use every focused
+   element gets the same ring plus a stronger glow so it reads across the room. */
+:root.using-gamepad :focus {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--color-accent-glow), var(--shadow-md);
+  border-radius: var(--radius-md);
+  scroll-margin: var(--space-6);
+}
+:root.using-gamepad .card:focus {
+  outline-offset: 0;
+}
+
+/* --- Scrollbars ----------------------------------------------------------
+   Thin, rounded, low-contrast. The thumb is inset via a transparent border so
+   it reads as a floating pill rather than a full-height track. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+}
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+*::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color var(--duration-med) var(--ease-out);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

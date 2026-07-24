@@ -1,0 +1,38 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies / build output
+node_modules
+dist
+dist-ssr
+*.local
+
+# Rust / Tauri build output
+src-tauri/target/
+src-tauri/gen/
+
+# Local data that must never be committed:
+#   IGDB credentials, the SQLite library, artwork cache, user themes all live in
+#   the OS config dir (%APPDATA%/Selene, ~/.config/Selene), NOT in the repo.
+#   These entries only matter if you ever point the config dir at the tree.
+credentials.json
+*.db
+*.db-wal
+*.db-shm
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

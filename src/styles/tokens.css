@@ -1,0 +1,174 @@
+/* ============================================================================
+   DESIGN TOKEN CONTRACT
+   ----------------------------------------------------------------------------
+   Every color, space, font, shadow and duration used anywhere in this app
+   resolves to a variable declared here. Components must never hardcode a
+   literal value.
+
+   A theme is one CSS file that re-declares a subset of these under a
+   [data-theme="..."] selector. Because :root below defines a complete set, a
+   theme only needs to override what it actually wants to change.
+
+   DEPTH EFFECTS ARE TOKENS TOO. Gradients, highlights and glows are expressed
+   as translucent *overlays* layered on a themed surface color, rather than as
+   baked literal colors. That is what lets a light theme invert them by
+   overriding one value instead of rewriting components -- a hardcoded
+   white-to-transparent sheen would smear grey over every panel in the light theme.
+   ========================================================================== */
+
+:root {
+  /* --- Layout metrics ---------------------------------------------------- */
+  --layout-topbar-h: 48px;
+  --layout-sidebar-w: 244px;
+  --layout-sidebar-collapsed-w: 0px;
+  --layout-content-max-w: 1600px;
+
+  /* --- Spacing scale (4px base) ------------------------------------------ */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Grid density is its own token: card gap is tuned independently of the
+     generic spacing scale so tightening the grid never shifts panel padding. */
+  --grid-gap: 12px;
+  --grid-cover-min: 158px;
+
+  /* --- Radii --------------------------------------------------------------
+     One coherent ramp. Steam's client sits at the tight end, so cards and
+     panels share 6px rather than drifting between 8 and 12. */
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 10px;
+  --radius-pill: 999px;
+
+  /* --- Typography --------------------------------------------------------- */
+  --font-sans: "Motiva Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Cascadia Code", "Consolas", ui-monospace, monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+  --text-3xl: 34px;
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+
+  --tracking-wide: 0.04em;
+  --tracking-wider: 0.08em;
+
+  /* --- Cover art aspect ratios -------------------------------------------- */
+  --ratio-cover: 3 / 4;
+  --ratio-hero: 16 / 6;
+
+  /* --- Motion --------------------------------------------------------------
+     Hover work lands in the 150-200ms band; instant state changes are avoided
+     everywhere except focus rings, which must feel immediate. */
+  --duration-fast: 110ms;
+  --duration-med: 170ms;
+  --duration-slow: 280ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* --- Elevation ----------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.28);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.34);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.44);
+
+  /* Card-specific elevation, separate from the generic ramp so the grid can be
+     tuned without disturbing panels and dialogs. */
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.36);
+  --shadow-card-hover: 0 10px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.35);
+
+  /* Inset depth for input wells. */
+  --shadow-inset: inset 0 1px 2px rgb(0 0 0 / 0.35);
+
+  /* 1px top highlight that reads as a lit edge on raised surfaces. */
+  --highlight-edge: inset 0 1px 0 rgb(255 255 255 / 0.055);
+
+  /* --- Depth overlays -----------------------------------------------------
+     Layered over themed background colors via background-image. Alphas are
+     deliberately low; depth should read as a sheen, not a stripe. */
+  --gradient-panel: linear-gradient(180deg, rgb(255 255 255 / 0.038) 0%, rgb(255 255 255 / 0) 62%);
+  --gradient-topbar: linear-gradient(180deg, rgb(255 255 255 / 0.05) 0%, rgb(0 0 0 / 0.12) 100%);
+  --gradient-sidebar: linear-gradient(180deg, rgb(255 255 255 / 0.022) 0%, rgb(255 255 255 / 0) 40%);
+  --gradient-play: linear-gradient(180deg, rgb(255 255 255 / 0.16) 0%, rgb(255 255 255 / 0) 100%);
+
+  /* Scrim behind card metadata. Fixed dark regardless of theme -- it sits on
+     artwork, not on a themed surface. */
+  --scrim-card: linear-gradient(to top, rgb(0 0 0 / 0.92) 0%, rgb(0 0 0 / 0.72) 45%, rgb(0 0 0 / 0) 100%);
+
+  /* --- Scrollbar ------------------------------------------------------------ */
+  --scrollbar-size: 8px;
+  --color-scrollbar-thumb: #352b56;
+  --color-scrollbar-thumb-hover: #453a6d;
+  --color-scrollbar-track: transparent;
+
+  /* ======================================================================
+     COLOR CONTRACT
+     Defaults below mirror Lunar, the default theme, so the app is correctly
+     themed even before a [data-theme] attribute is applied and if no theme
+     file loads at all. Names are semantic (role), never literal (hue).
+     ====================================================================== */
+
+  /* Backgrounds, from furthest back to closest to the user */
+  --color-bg-base: #15102a;
+  --color-bg-raised: #1c1637;
+  --color-bg-sunken: #0f0b1f;
+  --color-bg-overlay: #120d24;
+
+  /* Interactive surfaces */
+  --color-surface: #271f47;
+  --color-surface-hover: #322858;
+  --color-surface-active: #3d3169;
+  --color-surface-selected: #342a5e;
+
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #cfc9e0;
+  --color-text-muted: #9089ad;
+  --color-text-inverse: #15102a;
+
+  /* Accent (links, selection, focus, active tab) */
+  --color-accent: #a06ef5;
+  --color-accent-hover: #b98cf8;
+  --color-accent-muted: #35275e;
+  --color-accent-text: #140f26;
+  /* Accent at low alpha, for glows and selection washes. */
+  --color-accent-glow: rgb(160 110 245 / 0.34);
+
+  /* Play button -- deliberately its own role, not the accent. */
+  --color-play: #5b6ef5;
+  --color-play-hover: #7385f7;
+  --color-play-text: #ffffff;
+
+  /* Lines. Borders are intentionally close to their background: at 1px, high
+     contrast reads as a drawn box rather than a seam. */
+  --color-border: #241c42;
+  --color-border-subtle: #1d1636;
+  --color-border-strong: #3a2f5e;
+  --color-focus-ring: #a06ef5;
+
+  /* Status */
+  --color-success: #5fd39b;
+  --color-warning: #d98ac9;
+  --color-danger: #f0647e;
+  --color-info: #a06ef5;
+
+  /* Decorative gradient behind hero art when no artwork is available */
+  --gradient-hero-fallback: linear-gradient(135deg, #3d2b78 0%, #15102a 100%);
+}
