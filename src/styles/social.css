@@ -1,0 +1,101 @@
+/* Social layer (Friends tab). Everything resolves to design tokens so it themes
+   with the rest of the app. Layout only — no literal colors. */
+
+.avatar {
+  flex: none;
+  border-radius: var(--radius-pill);
+  object-fit: cover;
+  background: var(--color-surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.avatar--fallback {
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+}
+
+.profilehead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.profilehead__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profilehead__name {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.profilehead__handle {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.friendrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.friendrow:last-child {
+  border-bottom: none;
+}
+
+.friendrow__id {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-right: auto;
+  min-width: 0;
+}
+
+.friendrow__name {
+  color: var(--color-text-primary);
+  font-weight: var(--weight-medium);
+}
+
+.friendrow__handle {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* Presence dot — filled in for real in Phase B. */
+.presence {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-muted);
+}
+
+.presence--online {
+  background: var(--color-success);
+}
+
+.presence--offline {
+  background: var(--color-text-muted);
+  opacity: 0.45;
+}
+
+/* The "@" before a handle input. */
+.handleprefix {
+  align-self: center;
+  color: var(--color-text-muted);
+  font-weight: var(--weight-semibold);
+}
