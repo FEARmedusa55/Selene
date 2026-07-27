@@ -9,6 +9,7 @@ import { ArtOverride } from "./ArtOverride";
 import { ExecutablePicker } from "./ExecutablePicker";
 import { ConvertPanel } from "./ConvertPanel";
 import { AddonsPanel } from "./AddonsPanel";
+import { GoldbergPanel } from "./GoldbergPanel";
 import { api, inTauri, type EdenRequirements } from "../api";
 
 interface Props {
@@ -30,7 +31,6 @@ export function GamePage({
   onChanged,
 }: Props) {
   const isWiiU = game.platform === "wiiu";
-  const isSteamApi = game.platform === "pc" && game.tags.includes("Steam API");
 
   const [edenReq, setEdenReq] = useState<EdenRequirements | null>(null);
 
@@ -201,20 +201,7 @@ export function GamePage({
           </section>
         )}
 
-        {isSteamApi && (
-          <section className="panel">
-            <h2 className="panel__title">Goldberg (Steam API)</h2>
-            <div className="notice notice--info">
-              A Steam API DLL was detected for this game. Goldberg emulates the
-              Steamworks API for offline and LAN play. Original DLLs are backed
-              up before any change.
-            </div>
-            <label className="toggle">
-              <input type="checkbox" disabled />
-              <span>Enable Goldberg emulator</span>
-            </label>
-          </section>
-        )}
+        {game.runner === "native-pc" && <GoldbergPanel game={game} />}
       </div>
     </div>
   );

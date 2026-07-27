@@ -120,6 +120,36 @@ export interface PretendoStatus {
   cemuRunning: boolean;
 }
 
+/** One Steam DLL found in a PC game's folder. */
+export interface GoldbergDll {
+  path: string;
+  /** "x86" (steam_api.dll) or "x64" (steam_api64.dll). */
+  arch: string;
+  /** The DLL currently in place is a Goldberg build. */
+  goldberg: boolean;
+  /** A Selene backup of the original sits beside it. */
+  backup: boolean;
+}
+
+/** Goldberg state for a PC game. */
+export interface GoldbergStatus {
+  /** This is a PC game with at least one Steam DLL — panel shows only then. */
+  supported: boolean;
+  /** A Goldberg DLL is currently installed. */
+  applied: boolean;
+  /** Selene applied it and holds a manifest, so it can revert cleanly. */
+  managed: boolean;
+  appId: string | null;
+  dlls: GoldbergDll[];
+  goldbergDir: string | null;
+  /** The configured release supplies every bitness this game needs. */
+  goldbergReady: boolean;
+  /** Global Goldberg player name (how you appear to friends on LAN). */
+  accountName: string | null;
+  /** Reasons Apply is unavailable, phrased for the user. */
+  blockers: string[];
+}
+
 export interface Addon {
   titleId: string;
   family: string;
@@ -211,6 +241,18 @@ export const api = {
     invoke<void>("set_pretendo_service", { service, online }),
   setPretendoAccountId: (persistentId: string, pnid: string) =>
     invoke<void>("set_pretendo_account_id", { persistentId, pnid }),
+
+  getGoldbergDir: () => invoke<string | null>("get_goldberg_dir"),
+  setGoldbergDir: (path: string) => invoke<void>("set_goldberg_dir", { path }),
+  goldbergStatus: (gameId: string) =>
+    invoke<GoldbergStatus>("goldberg_status", { gameId }),
+  goldbergApply: (gameId: string, appId: string) =>
+    invoke<void>("goldberg_apply", { gameId, appId }),
+  goldbergRemove: (gameId: string) => invoke<void>("goldberg_remove", { gameId }),
+  getGoldbergAccountName: () =>
+    invoke<string | null>("get_goldberg_account_name"),
+  setGoldbergAccountName: (name: string) =>
+    invoke<void>("set_goldberg_account_name", { name }),
 
   listExecutables: (gameId: string) =>
     invoke<ExeCandidate[]>("list_executables", { gameId }),
