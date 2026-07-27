@@ -4,6 +4,7 @@ pub mod addons;
 pub mod config;
 pub mod convert;
 pub mod db;
+pub mod goldberg;
 pub mod launch;
 pub mod metadata;
 pub mod model;
@@ -704,6 +705,103 @@ fn set_pretendo_account_id(
     pretendo::set_account_id(&dir, &persistent_id, &pnid).map_err(err)
 }
 
+// --- Goldberg (Steam API emulation for PC games) ---------------------------
+
+/// The user-supplied Goldberg release folder, if one is configured and present.
+fn goldberg_dir(conn: &rusqlite::Connection) -> Option<PathBuf> {
+    let raw = store::get_setting(conn, "goldberg_dir").ok().flatten()?;
+    let p = PathBuf::from(raw);
+    p.is_dir().then_some(p)
+}
+
+#[tauri::command]
+fn get_goldberg_dir(state: tauri::State<'_, AppState>) -> CmdResult<Option<String>> {
+    let conn = state.conn.lock().map_err(err)?;
+    store::get_setting(&conn, "goldberg_dir").map_err(err)
+}
+
+/// Point Selene at an extracted Goldberg release. Empty clears it.
+#[tauri::command]
+fn set_goldberg_dir(state: tauri::State<'_, AppState>, path: String) -> CmdResult<()> {
+    let p = path.trim();
+    if !p.is_empty() && !std::path::Path::new(p).is_dir() {
+        return Err(format!("Not a folder: {p}"));
+    }
+    let conn = state.conn.lock().map_err(err)?;
+    store::set_setting(&conn, "goldberg_dir", p).map_err(err)
+}
+
+/// Goldberg state for a game: which Steam DLLs it has, whether the emulator is
+/// installed, the AppID, and any reason Apply is not yet available.
+#[tauri::command]
+fn goldberg_status(
+    state: tauri::State<'_, AppState>,
+    game_id: String,
+) -> CmdResult<goldberg::Status> {
+    let (game, gb_dir) = {
+        let conn = state.conn.lock().map_err(err)?;
+        let game = store::game_by_id(&conn, &game_id)
+            .map_err(err)?
+            .ok_or("unknown game")?;
+        (game, goldberg_dir(&conn))
+    };
+    // Only PC games have a Steam API DLL to emulate.
+    if game.runner != model::RunnerId::NativePc {
+        return Ok(goldberg::status(std::path::Path::new(""), None));
+    }
+    Ok(goldberg::status(
+        std::path::Path::new(&game.path),
+        gb_dir.as_deref(),
+    ))
+}
+
+/// Install Goldberg into a game folder, backing up the originals first.
+#[tauri::command]
+fn goldberg_apply(
+    state: tauri::State<'_, AppState>,
+    game_id: String,
+    app_id: String,
+) -> CmdResult<()> {
+    let (game, gb_dir) = {
+        let conn = state.conn.lock().map_err(err)?;
+        let game = store::game_by_id(&conn, &game_id)
+            .map_err(err)?
+            .ok_or("unknown game")?;
+        let dir = goldberg_dir(&conn)
+            .ok_or("No Goldberg emulator folder is set. Add it in Settings first.")?;
+        (game, dir)
+    };
+    if game.runner != model::RunnerId::NativePc {
+        return Err("Goldberg only applies to PC games.".into());
+    }
+    let release = goldberg::resolve_release(&gb_dir);
+    goldberg::apply(std::path::Path::new(&game.path), &release, &app_id).map_err(err)
+}
+
+/// The global Goldberg player name — how you appear to friends on LAN.
+#[tauri::command]
+fn get_goldberg_account_name() -> CmdResult<Option<String>> {
+    Ok(goldberg::account_name())
+}
+
+/// Set (empty clears) the global Goldberg player name.
+#[tauri::command]
+fn set_goldberg_account_name(name: String) -> CmdResult<()> {
+    goldberg::set_account_name(&name).map_err(err)
+}
+
+/// Revert a Selene-applied Goldberg setup, restoring the original DLLs.
+#[tauri::command]
+fn goldberg_remove(state: tauri::State<'_, AppState>, game_id: String) -> CmdResult<()> {
+    let game = {
+        let conn = state.conn.lock().map_err(err)?;
+        store::game_by_id(&conn, &game_id)
+            .map_err(err)?
+            .ok_or("unknown game")?
+    };
+    goldberg::remove(std::path::Path::new(&game.path)).map_err(err)
+}
+
 #[tauri::command]
 fn get_game_config(state: tauri::State<'_, AppState>, game_id: String) -> CmdResult<String> {
     let conn = state.conn.lock().map_err(err)?;
@@ -969,6 +1067,13 @@ pub fn run() {
             pretendo_status,
             set_pretendo_service,
             set_pretendo_account_id,
+            get_goldberg_dir,
+            set_goldberg_dir,
+            goldberg_status,
+            goldberg_apply,
+            goldberg_remove,
+            get_goldberg_account_name,
+            set_goldberg_account_name,
             list_user_themes,
             open_themes_dir,
             set_preference,

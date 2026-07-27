@@ -28,19 +28,25 @@ export function SettingsTab({
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [igdbReady, setIgdbReady] = useState(false);
+  const [goldbergDir, setGoldbergDir] = useState("");
+  const [goldbergName, setGoldbergName] = useState("");
   const [note, setNote] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     if (!inTauri) return;
     try {
-      const [r, sr, ok] = await Promise.all([
+      const [r, sr, ok, gb, gn] = await Promise.all([
         api.listRunners(),
         api.listScanRoots(),
         api.igdbConfigured(),
+        api.getGoldbergDir(),
+        api.getGoldbergAccountName(),
       ]);
       setRunners(r);
       setRoots(sr);
       setIgdbReady(ok);
+      setGoldbergDir(gb ?? "");
+      setGoldbergName(gn ?? "");
       setExePaths(
         Object.fromEntries(
           r.map((x) => [x.id, x.executableConfigured ?? x.executableDetected ?? ""]),
@@ -95,6 +101,26 @@ export function SettingsTab({
     setClientSecret("");
     await reload();
     flash("IGDB credentials saved");
+  };
+
+  const saveGoldbergDir = async () => {
+    try {
+      await api.setGoldbergDir(goldbergDir.trim());
+      await reload();
+      flash(goldbergDir.trim() ? "Goldberg folder saved" : "Goldberg folder cleared");
+    } catch (e) {
+      flash(String(e));
+    }
+  };
+
+  const saveGoldbergName = async () => {
+    try {
+      await api.setGoldbergAccountName(goldbergName.trim());
+      await reload();
+      flash(goldbergName.trim() ? "Player name saved" : "Player name cleared");
+    } catch (e) {
+      flash(String(e));
+    }
   };
 
   return (
@@ -259,6 +285,57 @@ export function SettingsTab({
               </ul>
             </section>
           )}
+
+          <section className="panel">
+            <h2 className="panel__title">
+              Steam emulation (Goldberg)
+              <span className="panel__hint">For delisted / Steam-gated PC games</span>
+            </h2>
+            <div className="field">
+              <label>Goldberg release folder</label>
+              <div className="row">
+                <input
+                  className="input"
+                  value={goldbergDir}
+                  onChange={(e) => setGoldbergDir(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && void saveGoldbergDir()}
+                  placeholder="Folder you extracted Goldberg into"
+                  spellCheck={false}
+                />
+                <button className="btn btn--ghost" onClick={saveGoldbergDir}>
+                  Save
+                </button>
+              </div>
+              <span className="field__hint">
+                Point this at your extracted Goldberg download (the folder holding
+                its <code>experimental</code> / <code>release</code> DLLs). Then use
+                the Steam emulation panel on a PC game&rsquo;s page. This app bundles
+                no binaries — you supply your own.
+              </span>
+            </div>
+            <div className="field">
+              <label>Player name</label>
+              <div className="row">
+                <input
+                  className="input"
+                  value={goldbergName}
+                  onChange={(e) => setGoldbergName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && void saveGoldbergName()}
+                  placeholder="How you appear to friends (default: Goldberg)"
+                  maxLength={32}
+                  spellCheck={false}
+                />
+                <button className="btn btn--ghost" onClick={saveGoldbergName}>
+                  Save
+                </button>
+              </div>
+              <span className="field__hint">
+                Your name for LAN play — it applies to every Goldberg game. Each
+                friend sets their own so you show up as distinct players in a lobby.
+                Leave blank to use Goldberg&rsquo;s default.
+              </span>
+            </div>
+          </section>
 
           <section className="panel">
             <h2 className="panel__title">
