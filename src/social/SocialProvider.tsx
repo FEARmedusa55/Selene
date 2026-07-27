@@ -14,8 +14,15 @@ import {
 } from "react";
 import type { Profile, Session, SocialClient } from "./types";
 import { mockClient } from "./mockClient";
+import { supabaseSocialClient } from "./supabaseClient";
+import { isSupabaseConfigured } from "./config";
+import { inTauri } from "../api";
 
-export const socialClient: SocialClient = mockClient;
+/* Use the real backend when it's configured AND we're in the desktop shell (the
+ * OAuth loopback needs the Rust side). Otherwise — no keys, or a plain browser
+ * preview — fall back to the in-memory mock. */
+export const socialClient: SocialClient =
+  isSupabaseConfigured && inTauri ? supabaseSocialClient : mockClient;
 
 interface SocialCtx {
   client: SocialClient;
