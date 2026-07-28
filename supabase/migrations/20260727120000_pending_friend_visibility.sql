@@ -17,7 +17,7 @@ security definer
 set search_path = public
 as $$
   select exists (
-    select 1 from public.friendships f
+    select 1 from public.friendships f 
     where f.user_a = least(a, b)
       and f.user_b = greatest(a, b)
   );
