@@ -75,22 +75,43 @@
   color: var(--color-text-muted);
 }
 
-/* Presence dot — filled in for real in Phase B. */
+/* Second line under a friend's name: their live status, or @handle when offline. */
+.friendrow__sub {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.friendrow__sub[data-status="online"] {
+  color: var(--color-success);
+}
+
+.friendrow__sub[data-status="in_game"] {
+  color: var(--color-accent);
+}
+
+/* Presence dot, colored by live status. */
 .presence {
   flex: none;
   width: 10px;
   height: 10px;
   border-radius: var(--radius-pill);
   background: var(--color-text-muted);
+  opacity: 0.5;
 }
 
-.presence--online {
+.presence[data-status="online"] {
   background: var(--color-success);
+  opacity: 1;
 }
 
-.presence--offline {
+.presence[data-status="in_game"] {
+  background: var(--color-accent);
+  opacity: 1;
+}
+
+.presence[data-status="offline"] {
   background: var(--color-text-muted);
-  opacity: 0.45;
+  opacity: 0.5;
 }
 
 /* The "@" before a handle input. */

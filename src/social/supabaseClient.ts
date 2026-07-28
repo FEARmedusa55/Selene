@@ -13,6 +13,9 @@ import { OAUTH_PORT, SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } fro
 import type {
   Friend,
   FriendRequests,
+  Presence,
+  PresenceStatus,
+  PresenceUpdate,
   Profile,
   ProfilePatch,
   PublicProfile,
@@ -57,6 +60,22 @@ interface FriendshipRow {
   status: "pending" | "accepted";
   created_at: string;
   responded_at: string | null;
+}
+
+interface PresenceRow {
+  user_id: string;
+  status: PresenceStatus;
+  game_title: string | null;
+  updated_at: string;
+}
+
+function toPresence(r: PresenceRow): Presence {
+  return {
+    userId: r.user_id,
+    status: r.status,
+    gameTitle: r.game_title ?? undefined,
+    updatedAt: r.updated_at,
+  };
 }
 
 function toProfile(r: ProfileRow): Profile {
@@ -281,5 +300,41 @@ export const supabaseSocialClient: SocialClient = {
     const [a, b] = pair(id, userId);
     const { error } = await supabase.from("friendships").delete().eq("user_a", a).eq("user_b", b);
     if (error) throw error;
+  },
+
+  async publishPresence(update: PresenceUpdate) {
+    const id = await myId();
+    const { error } = await supabase.from("presence").upsert({
+      user_id: id,
+      status: update.status,
+      game_title: update.gameTitle ?? null,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
+  },
+
+  async listPresence(userIds) {
+    if (userIds.length === 0) return [];
+    const { data, error } = await supabase.from("presence").select("*").in("user_id", userIds);
+    if (error) throw error;
+    return (data as PresenceRow[]).map(toPresence);
+  },
+
+  subscribePresence(onChange) {
+    // RLS scopes the stream to rows this user can read — i.e. their friends'.
+    const channel = supabase
+      .channel("presence-friends")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "presence" },
+        (payload) => {
+          const row = payload.new as PresenceRow;
+          if (row && row.user_id) onChange(toPresence(row));
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   },
 };

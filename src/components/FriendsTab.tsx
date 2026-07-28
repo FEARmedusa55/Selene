@@ -1,7 +1,34 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSocial } from "../social/SocialProvider";
-import type { Friend, FriendRequests, Profile, Visibility } from "../social/types";
-import { HANDLE_RE } from "../social/types";
+import type {
+  Friend,
+  FriendRequests,
+  Presence,
+  PresenceStatus,
+  Profile,
+  Visibility,
+} from "../social/types";
+import { HANDLE_RE, PRESENCE_STALE_MS } from "../social/types";
+
+/** A stale online/in-game row (missed its clean shutdown) counts as offline. */
+function effectiveStatus(p: Presence | undefined): PresenceStatus {
+  if (!p) return "offline";
+  if (p.status !== "offline" && Date.now() - new Date(p.updatedAt).getTime() > PRESENCE_STALE_MS) {
+    return "offline";
+  }
+  return p.status;
+}
+
+function presenceText(p: Presence | undefined): string {
+  switch (effectiveStatus(p)) {
+    case "in_game":
+      return p?.gameTitle ? `Playing ${p.gameTitle}` : "In a game";
+    case "online":
+      return "Online";
+    default:
+      return "Offline";
+  }
+}
 
 /* The Friends tab — the opt-in social layer.
  *
@@ -90,6 +117,7 @@ function SignedIn({ me, refreshMe }: { me: Profile; refreshMe: () => Promise<voi
   const { client } = useSocial();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<FriendRequests>({ incoming: [], outgoing: [] });
+  const [presence, setPresence] = useState<Map<string, Presence>>(new Map());
   const [note, setNote] = useState<string | null>(null);
 
   const flash = (m: string) => {
@@ -106,6 +134,41 @@ function SignedIn({ me, refreshMe }: { me: Profile; refreshMe: () => Promise<voi
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // Fetch current presence whenever the friend set changes.
+  useEffect(() => {
+    const ids = friends.map((f) => f.id);
+    if (ids.length === 0) {
+      setPresence(new Map());
+      return;
+    }
+    let active = true;
+    client
+      .listPresence(ids)
+      .then((list) => {
+        if (active) setPresence(new Map(list.map((p) => [p.userId, p])));
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [client, friends]);
+
+  // Live updates: RLS scopes the stream to friends' rows.
+  useEffect(() => {
+    return client.subscribePresence((p) => {
+      setPresence((prev) => new Map(prev).set(p.userId, p));
+    });
+  }, [client]);
+
+  // Online / in-game friends float to the top, then alphabetical.
+  const orderedFriends = [...friends].sort((a, b) => {
+    const rank = (id: string) => {
+      const s = effectiveStatus(presence.get(id));
+      return s === "in_game" ? 0 : s === "online" ? 1 : 2;
+    };
+    return rank(a.id) - rank(b.id) || a.displayName.localeCompare(b.displayName);
+  });
 
   return (
     <>
@@ -179,26 +242,32 @@ function SignedIn({ me, refreshMe }: { me: Profile; refreshMe: () => Promise<voi
             No friends yet. Add someone by their <strong>@handle</strong> above.
           </div>
         ) : (
-          friends.map((f) => (
-            <div className="friendrow" key={f.id}>
-              <Avatar url={f.avatarUrl} name={f.displayName} />
-              <div className="friendrow__id">
-                <span className="friendrow__name">{f.displayName}</span>
-                <span className="friendrow__handle">@{f.handle}</span>
+          orderedFriends.map((f) => {
+            const p = presence.get(f.id);
+            const status = effectiveStatus(p);
+            const label = presenceText(p);
+            return (
+              <div className="friendrow" key={f.id}>
+                <span className="presence" data-status={status} title={label} />
+                <Avatar url={f.avatarUrl} name={f.displayName} />
+                <div className="friendrow__id">
+                  <span className="friendrow__name">{f.displayName}</span>
+                  <span className="friendrow__sub" data-status={status}>
+                    {status === "offline" ? `@${f.handle}` : label}
+                  </span>
+                </div>
+                <button
+                  className="btn btn--small btn--ghost"
+                  onClick={async () => {
+                    await client.removeFriend(f.id);
+                    await reload();
+                  }}
+                >
+                  Remove
+                </button>
               </div>
-              {/* Presence lands in Phase B; a static dot stands in for now. */}
-              <span className="presence presence--offline" title="Presence arrives in Phase B" />
-              <button
-                className="btn btn--small btn--ghost"
-                onClick={async () => {
-                  await client.removeFriend(f.id);
-                  await reload();
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          ))
+            );
+          })
         )}
       </section>
 

@@ -33,9 +33,27 @@ export interface PublicProfile {
   avatarUrl?: string;
 }
 
-/** An accepted friend. Presence fields arrive in Phase B. */
+/** An accepted friend. Live presence is fetched/subscribed separately. */
 export interface Friend extends PublicProfile {
   since: string;
+}
+
+export type PresenceStatus = "offline" | "online" | "in_game";
+
+/** A user's live presence. */
+export interface Presence {
+  userId: string;
+  status: PresenceStatus;
+  /** The game being played, when in_game and titles aren't hidden. */
+  gameTitle?: string;
+  /** ISO timestamp; doubles as the heartbeat for staleness. */
+  updatedAt: string;
+}
+
+/** What the client publishes about itself. */
+export interface PresenceUpdate {
+  status: PresenceStatus;
+  gameTitle?: string | null;
 }
 
 /** A pending request, in either direction. */
@@ -89,7 +107,19 @@ export interface SocialClient {
   acceptRequest(userId: string): Promise<void>;
   declineRequest(userId: string): Promise<void>;
   removeFriend(userId: string): Promise<void>;
+
+  // --- presence ---
+  /** Publish your own live status. */
+  publishPresence(update: PresenceUpdate): Promise<void>;
+  /** Current presence for a set of users (your friends). */
+  listPresence(userIds: string[]): Promise<Presence[]>;
+  /** Subscribe to live presence changes for your friends; returns unsubscribe. */
+  subscribePresence(onChange: (presence: Presence) => void): () => void;
 }
+
+/** An 'online'/'in_game' row older than this is treated as offline (missed the
+ *  clean shutdown). Must exceed the publisher's heartbeat interval. */
+export const PRESENCE_STALE_MS = 150_000;
 
 /** A valid handle: 3–20 chars, letters/digits/underscore. Mirrors the SQL check. */
 export const HANDLE_RE = /^[A-Za-z0-9_]{3,20}$/;

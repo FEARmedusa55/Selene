@@ -6,6 +6,8 @@
 import type {
   Friend,
   FriendRequests,
+  Presence,
+  PresenceUpdate,
   Profile,
   ProfilePatch,
   PublicProfile,
@@ -155,5 +157,23 @@ export const mockClient: SocialClient = {
   async removeFriend(userId: string) {
     await delay(120);
     friends = friends.filter((f) => f.id !== userId);
+  },
+
+  async publishPresence(_update: PresenceUpdate) {
+    // no-op: the mock doesn't broadcast
+  },
+
+  async listPresence(userIds: string[]): Promise<Presence[]> {
+    await delay(80);
+    const now = new Date().toISOString();
+    const fake: Record<string, Presence> = {
+      "u-finn": { userId: "u-finn", status: "online", updatedAt: now },
+      "u-jake": { userId: "u-jake", status: "in_game", gameTitle: "Splatoon 3", updatedAt: now },
+    };
+    return userIds.map((id) => fake[id]).filter((p): p is Presence => Boolean(p));
+  },
+
+  subscribePresence(_onChange: (presence: Presence) => void) {
+    return () => {};
   },
 };

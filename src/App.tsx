@@ -10,6 +10,7 @@ import { GamePage } from "./components/GamePage";
 import { SettingsTab } from "./components/SettingsTab";
 import { PretendoTab } from "./components/PretendoTab";
 import { FriendsTab } from "./components/FriendsTab";
+import { usePresencePublisher } from "./social/usePresence";
 
 type Tab = "library" | "friends" | "pretendo" | "settings";
 
@@ -40,6 +41,9 @@ export default function App() {
   const [userThemes, setUserThemes] = useState<ThemeMeta[]>([]);
 
   const allThemes = useMemo(() => [...BUILTIN_THEMES, ...userThemes], [userThemes]);
+
+  // Broadcast our own presence (online + playing X) to friends while signed in.
+  usePresencePublisher(games);
 
   useEffect(() => applyTheme(theme), [theme]);
 
