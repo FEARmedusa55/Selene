@@ -33,9 +33,12 @@ the app. Nothing here is destructive, and none of it touches the local-first app
 
 1. Supabase → **Authentication → Providers → Discord** → enable it.
 2. Paste the Discord **Client ID** and **Client Secret** from step 2. Save.
-3. Supabase → **Authentication → URL Configuration** → add Selene's redirect
-   target so the desktop app can catch the login (I'll give you the exact value
-   when I wire the client — it's a deep link like `selene://auth-callback`).
+3. Supabase → **Authentication → URL Configuration → Redirect URLs** → add:
+   ```
+   http://localhost:54321/callback
+   ```
+   The desktop app opens Discord in your browser and catches the sign-in on this
+   loopback address (see `oauth_capture` in `src-tauri/src/lib.rs`).
 
 ## What to hand me
 
