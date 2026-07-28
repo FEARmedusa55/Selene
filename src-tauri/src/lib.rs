@@ -705,6 +705,75 @@ fn set_pretendo_account_id(
     pretendo::set_account_id(&dir, &persistent_id, &pnid).map_err(err)
 }
 
+// --- Online: desktop OAuth loopback ----------------------------------------
+
+/// Catch the OAuth redirect for the sign-in flow.
+///
+/// Desktop apps can't take a web redirect the way a site does, so we open the
+/// provider in the system browser and point its `redirect_to` at
+/// `http://localhost:<port>/callback`. This binds that port, waits for the one
+/// request carrying `?code=...`, answers with a friendly "you can close this"
+/// page, and hands the code back to the frontend to exchange for a session.
+#[tauri::command]
+async fn oauth_capture(port: u16) -> CmdResult<String> {
+    tauri::async_runtime::spawn_blocking(move || capture_oauth_code(port))
+        .await
+        .map_err(err)?
+}
+
+fn capture_oauth_code(port: u16) -> CmdResult<String> {
+    use std::io::{Read, Write};
+    use std::net::{Ipv4Addr, TcpListener};
+    use std::time::{Duration, Instant};
+
+    let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, port))
+        .map_err(|e| format!("could not bind localhost:{port}: {e}"))?;
+    listener.set_nonblocking(true).ok();
+
+    let deadline = Instant::now() + Duration::from_secs(180);
+    let page = "<!doctype html><meta charset=utf-8><title>Selene</title>\
+        <body style=\"font-family:system-ui;background:#15102a;color:#fff;text-align:center;padding-top:15vh\">\
+        <h2>Signed in to Selene</h2><p>You can close this tab and return to the app.</p>";
+    let response = format!(
+        "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+        page.len(),
+        page
+    );
+
+    loop {
+        if Instant::now() > deadline {
+            return Err("Timed out waiting for sign-in.".into());
+        }
+        match listener.accept() {
+            Ok((mut stream, _)) => {
+                stream.set_read_timeout(Some(Duration::from_secs(2))).ok();
+                let mut buf = [0u8; 4096];
+                let n = stream.read(&mut buf).unwrap_or(0);
+                let req = String::from_utf8_lossy(&buf[..n]);
+                let path = req
+                    .lines()
+                    .next()
+                    .and_then(|line| line.split_whitespace().nth(1))
+                    .unwrap_or("");
+                let code = path
+                    .split_once('?')
+                    .and_then(|(_, qs)| qs.split('&').find_map(|kv| kv.strip_prefix("code=")))
+                    .map(|c| c.to_string());
+                let _ = stream.write_all(response.as_bytes());
+                // Browsers may preconnect or fetch a favicon; keep listening until
+                // the request that actually carries the auth code arrives.
+                if let Some(code) = code {
+                    return Ok(code);
+                }
+            }
+            Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                std::thread::sleep(Duration::from_millis(120));
+            }
+            Err(e) => return Err(e.to_string()),
+        }
+    }
+}
+
 // --- Goldberg (Steam API emulation for PC games) ---------------------------
 
 /// The user-supplied Goldberg release folder, if one is configured and present.
@@ -1067,6 +1136,7 @@ pub fn run() {
             pretendo_status,
             set_pretendo_service,
             set_pretendo_account_id,
+            oauth_capture,
             get_goldberg_dir,
             set_goldberg_dir,
             goldberg_status,

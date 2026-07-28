@@ -13,6 +13,12 @@ dist
 dist-ssr
 *.local
 
+# Online config — Supabase URL + anon key live here, not in the repo.
+# The anon key is public by design, but there's no reason to hand it to scrapers.
+.env
+.env.*
+!.env.example
+
 # Rust / Tauri build output
 src-tauri/target/
 src-tauri/gen/

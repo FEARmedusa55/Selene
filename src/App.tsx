@@ -9,11 +9,13 @@ import { GameGrid } from "./components/GameGrid";
 import { GamePage } from "./components/GamePage";
 import { SettingsTab } from "./components/SettingsTab";
 import { PretendoTab } from "./components/PretendoTab";
+import { FriendsTab } from "./components/FriendsTab";
 
-type Tab = "library" | "pretendo" | "settings";
+type Tab = "library" | "friends" | "pretendo" | "settings";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "library", label: "Library" },
+  { id: "friends", label: "Friends" },
   { id: "pretendo", label: "Pretendo" },
   { id: "settings", label: "Settings" },
 ];
@@ -283,6 +285,12 @@ export default function App() {
               )}
             </main>
           </>
+        )}
+
+        {tab === "friends" && (
+          <main className="content">
+            <FriendsTab />
+          </main>
         )}
 
         {tab === "pretendo" && (

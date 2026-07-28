@@ -1,6 +1,6 @@
 [package]
 name = "selene"
-version = "0.1.0"
+version = "0.2.0"
 description = "Unified game library launcher for emulated and PC games"
 authors = ["FEARmedusa55"]
 edition = "2021"
